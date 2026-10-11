@@ -3,6 +3,8 @@ const UPSTREAM_PRIMARY = 'https://bu0eg1tdzu.cloudflare-gateway.com/dns-query';
 const UPSTREAM_FALLBACK = 'https://rhpcv957tj.cloudflare-gateway.com/dns-query';
 const UPSTREAM_GEO_BYPASS = 'https://dns.quad9.net/dns-query'; // Re-resolve without ECS when geo-block returns loopback
 const UPSTREAM_TIMEOUT = 5000;
+const MAX_DNS_MESSAGE_SIZE = 65535;
+const MAX_QUESTIONS = 16;
 
 // Refresh interval for ALL lists (blocklist, allowlists, private TLDs, redirect rules)
 const ALL_LISTS_REFRESH_INTERVAL = 3600000; // 1 hour
@@ -33,8 +35,8 @@ const REDIRECT_RULES_URL = '/rules/redirect_rules.txt';
 const MULLVAD_UPSTREAM_ENABLED = true;
 const MULLVAD_UPSTREAM_URL = '/rules/quad9_upstream.txt';
 
-// /debug endpoint — set to true only when needed, false by default to avoid unnecessary requests
-const DEBUG_ENABLED = false;
+// /debug endpoint — exposes configuration and rule counts, but never query contents or secrets
+const DEBUG_ENABLED = true;
 
 // Pre-compiled regex patterns for performance
 const IPV4_MAPPED_REGEX = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i;
@@ -52,9 +54,18 @@ let blocklistPromise = null;
 let blocklistsFetched = false; // Track if lists have been fetched at least once
 
 // ==================== AD BLOCK ====================
-async function fetchList(url) {
+async function fetchAsset(url, env) {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (env?.ASSETS?.fetch) return await env.ASSETS.fetch(new Request(url));
+    return await fetch(url, { signal: AbortSignal.timeout(15000) });
+  } catch {
+    return new Response(null, { status: 404 });
+  }
+}
+
+async function fetchList(url, env) {
+  try {
+    const res = await fetchAsset(url, env);
     if (!res.ok) return new Set();
     const text = await res.text();
     const domains = new Set();
@@ -66,9 +77,9 @@ async function fetchList(url) {
   } catch { return new Set(); }
 }
 
-async function fetchRedirectRules(url) {
+async function fetchRedirectRules(url, env) {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    const res = await fetchAsset(url, env);
     if (!res.ok) return new Map();
     const text = await res.text();
     const rules = new Map();
@@ -82,7 +93,7 @@ async function fetchRedirectRules(url) {
   } catch { return new Map(); }
 }
 
-async function refreshBlocklists(baseUrl) {
+async function refreshBlocklists(baseUrl, env) {
   // Skip refresh if:
   // 1. Already fetched at least once AND
   // 2. Within refresh interval
@@ -99,11 +110,11 @@ async function refreshBlocklists(baseUrl) {
       const mUrl = new URL(MULLVAD_UPSTREAM_URL, baseUrl).toString();
 
       const [block, allow, privateList, redirRules, mullvadList] = await Promise.all([
-        AD_BLOCK_ENABLED ? fetchList(bUrl) : Promise.resolve(new Set()),
-        AD_BLOCK_ENABLED ? fetchList(aUrl) : Promise.resolve(new Set()),
-        BLOCK_PRIVATE_TLD ? fetchList(pUrl) : Promise.resolve(new Set()),
-        DNS_REDIRECT_ENABLED ? fetchRedirectRules(rUrl) : Promise.resolve(new Map()),
-        MULLVAD_UPSTREAM_ENABLED ? fetchList(mUrl) : Promise.resolve(new Set())
+        AD_BLOCK_ENABLED ? fetchList(bUrl, env) : Promise.resolve(new Set()),
+        AD_BLOCK_ENABLED ? fetchList(aUrl, env) : Promise.resolve(new Set()),
+        BLOCK_PRIVATE_TLD ? fetchList(pUrl, env) : Promise.resolve(new Set()),
+        DNS_REDIRECT_ENABLED ? fetchRedirectRules(rUrl, env) : Promise.resolve(new Map()),
+        MULLVAD_UPSTREAM_ENABLED ? fetchList(mUrl, env) : Promise.resolve(new Set())
       ]);
 
       // Always update state, even if lists are empty (to prevent infinite re-fetch)
@@ -137,6 +148,67 @@ function extractQtype(buf) {
     if (off + 2 > v.length) return null;
     return (v[off] << 8) | v[off + 1];
   } catch { return null; }
+}
+
+function skipDnsName(view, startOffset) {
+  let offset = startOffset;
+  let nextOffset = startOffset;
+  let jumped = false;
+  let hops = 0;
+  let nameLength = 0;
+
+  while (offset < view.length && hops++ < 32) {
+    const labelLength = view[offset];
+    if (labelLength === 0) {
+      if (!jumped) nextOffset = offset + 1;
+      return { nextOffset };
+    }
+    if ((labelLength & 0xc0) === 0xc0) {
+      if (offset + 1 >= view.length) return null;
+      const pointer = ((labelLength & 0x3f) << 8) | view[offset + 1];
+      if (pointer >= view.length) return null;
+      if (!jumped) nextOffset = offset + 2;
+      offset = pointer;
+      jumped = true;
+      continue;
+    }
+    if ((labelLength & 0xc0) !== 0 || labelLength > 63) return null;
+    offset += 1;
+    if (offset + labelLength > view.length) return null;
+    nameLength += labelLength + 1;
+    if (nameLength > 255) return null;
+    offset += labelLength;
+  }
+  return null;
+}
+
+function validateDnsQuery(buf) {
+  const view = new Uint8Array(buf);
+  if (view.length < 12 || view.length > MAX_DNS_MESSAGE_SIZE) return false;
+  if ((view[2] & 0x80) !== 0) return false;
+  const questionCount = (view[4] << 8) | view[5];
+  if (questionCount < 1 || questionCount > MAX_QUESTIONS) return false;
+
+  let offset = 12;
+  for (let i = 0; i < questionCount; i++) {
+    const name = skipDnsName(view, offset);
+    if (!name || name.nextOffset + 4 > view.length) return false;
+    offset = name.nextOffset + 4;
+  }
+  return true;
+}
+
+function decodeBase64Url(value) {
+  if (!value || !/^[A-Za-z0-9_-]+$/.test(value) || value.length % 4 === 1) return null;
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((value.length + 3) % 4);
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+  } catch {
+    return null;
+  }
 }
 
 // Build set of blocked query types from config
@@ -672,7 +744,24 @@ async function forwardQuery(query, upstream) {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT)
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.arrayBuffer();
+  const body = await res.arrayBuffer();
+  if (!validateDnsResponse(body)) throw new Error('Invalid DNS response');
+  return body;
+}
+
+function validateDnsResponse(buf) {
+  const view = new Uint8Array(buf);
+  return view.length >= 12 && view.length <= MAX_DNS_MESSAGE_SIZE && (view[2] & 0x80) !== 0;
+}
+
+function preserveTransactionId(query, response) {
+  const q = new Uint8Array(query);
+  const r = new Uint8Array(response);
+  if (q.length < 2 || r.length < 2 || q[0] === r[0] && q[1] === r[1]) return response;
+  const copy = new Uint8Array(r);
+  copy[0] = q[0];
+  copy[1] = q[1];
+  return copy.buffer;
 }
 
 // Resolve DNS query with fallback and geo-bypass logic
@@ -709,34 +798,58 @@ async function resolveQuery(query, clientIP) {
 
 // ==================== HELPERS ====================
 // Ensure blocklists are loaded (await on first load, background refresh after)
-async function ensureBlocklistsLoaded(url, context) {
+async function ensureBlocklistsLoaded(url, env, context) {
   if (!blocklistsFetched) {
     // First time: await to ensure lists are loaded
-    await refreshBlocklists(url);
+    await refreshBlocklists(url, env);
   } else if (context) {
     // Already fetched: background refresh only
-    context.waitUntil(refreshBlocklists(url));
+    context.waitUntil(refreshBlocklists(url, env));
   }
 }
 
 // ==================== HANDLERS ====================
-async function handleDNSQuery(request, context) {
+async function handleDNSQuery(request, env, context) {
   const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept' };
+  const cors = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Accept',
+    'Cache-Control': 'no-store',
+    'Vary': 'Accept',
+    'X-Content-Type-Options': 'nosniff'
+  };
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
 
   let query;
   if (request.method === 'POST') {
+    const contentType = request.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase();
+    if (contentType !== 'application/dns-message') {
+      return new Response('Content-Type must be application/dns-message', { status: 415, headers: cors });
+    }
+    const contentLength = Number(request.headers.get('content-length'));
+    if (Number.isFinite(contentLength) && contentLength > MAX_DNS_MESSAGE_SIZE) {
+      return new Response('DNS message is too large', { status: 413, headers: cors });
+    }
     query = await request.arrayBuffer();
+    if (query.byteLength > MAX_DNS_MESSAGE_SIZE) {
+      return new Response('DNS message is too large', { status: 413, headers: cors });
+    }
   } else if (request.method === 'GET') {
     const dns = new URL(request.url).searchParams.get('dns');
     if (!dns) return new Response('Missing dns parameter', { status: 400, headers: cors });
-    const b64 = dns.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = b64 + '=='.slice(0, (4 - b64.length % 4) % 4);
-    query = Uint8Array.from(atob(padded), c => c.charCodeAt(0)).buffer;
+    if (dns.length > Math.ceil(MAX_DNS_MESSAGE_SIZE * 4 / 3) + 4) {
+      return new Response('DNS message is too large', { status: 413, headers: cors });
+    }
+    query = decodeBase64Url(dns);
+    if (!query) return new Response('Invalid dns parameter', { status: 400, headers: cors });
   } else {
     return new Response('Method not allowed', { status: 405, headers: cors });
+  }
+
+  if (!validateDnsQuery(query)) {
+    return new Response('Invalid DNS message', { status: 400, headers: cors });
   }
 
   // Block unwanted query types early to save upstream requests
@@ -751,7 +864,7 @@ async function handleDNSQuery(request, context) {
 
   // Load data if any domain-based filter is enabled
   if (AD_BLOCK_ENABLED || BLOCK_PRIVATE_TLD || DNS_REDIRECT_ENABLED || MULLVAD_UPSTREAM_ENABLED) {
-    await ensureBlocklistsLoaded(request.url, context);
+    await ensureBlocklistsLoaded(request.url, env, context);
 
     // Parse domains once for both filters
     const domains = extractAllDomains(query);
@@ -763,7 +876,7 @@ async function handleDNSQuery(request, context) {
         try {
           const processed = injectECS(query, clientIP);
           const data = await forwardQuery(processed, UPSTREAM_GEO_BYPASS);
-          return new Response(data, {
+          return new Response(preserveTransactionId(query, data), {
             headers: { ...cors, 'Content-Type': 'application/dns-message', 'X-Upstream': 'Mullvad' }
           });
         } catch {
@@ -807,7 +920,7 @@ async function handleDNSQuery(request, context) {
   // Forward to upstream
   try {
     const data = await resolveQuery(query, clientIP);
-    return new Response(data, {
+    return new Response(preserveTransactionId(query, data), {
       headers: { ...cors, 'Content-Type': 'application/dns-message' }
     });
   } catch {
@@ -816,15 +929,15 @@ async function handleDNSQuery(request, context) {
 }
 
 // ==================== ROUTING ====================
-async function handleRequest(request, context) {
+async function handleRequest(request, env, context) {
   const path = new URL(request.url).pathname;
 
-  if (path === '/dns-query') return handleDNSQuery(request, context);
+  if (path === '/dns-query') return handleDNSQuery(request, env, context);
 
   if (path === '/debug') {
     if (!DEBUG_ENABLED) return new Response('Not Found', { status: 404 });
     if (AD_BLOCK_ENABLED || BLOCK_PRIVATE_TLD || DNS_REDIRECT_ENABLED) {
-      await ensureBlocklistsLoaded(request.url, context);
+      await ensureBlocklistsLoaded(request.url, env, context);
     }
     return new Response(JSON.stringify({
       upstreams: { primary: UPSTREAM_PRIMARY, fallback: UPSTREAM_FALLBACK, geoBypass: UPSTREAM_GEO_BYPASS },
@@ -897,10 +1010,14 @@ async function handleRequest(request, context) {
     });
   }
 
-  // Unknown route — return 404 (landing page served as static index.html)
+  if (env?.ASSETS?.fetch) return env.ASSETS.fetch(request);
+
+  // Legacy Pages fallback when this module is used without a static-assets binding.
   return new Response('Not Found', { status: 404 });
 }
 
+export { handleRequest };
+
 export async function onRequest(context) {
-  return handleRequest(context.request, context);
+  return handleRequest(context.request, context.env, context);
 }

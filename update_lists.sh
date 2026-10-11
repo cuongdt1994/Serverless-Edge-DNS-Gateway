@@ -4,11 +4,13 @@
 DIR="rules"
 BLOCK_OUT="./$DIR/blocklists.txt"
 ALLOW_OUT="./$DIR/allowlists.txt"
+PUBLIC_DIR="./public/rules"
 BLOCK_TMP="/tmp/blocklists.tmp"
 ALLOW_TMP="/tmp/allowlists.tmp"
 
 # Tạo thư mục rules nếu chưa có
 mkdir -p "./$DIR"
+mkdir -p "$PUBLIC_DIR"
 
 # Cleanup khi script exit
 trap "rm -f $BLOCK_TMP $ALLOW_TMP; exit" INT TERM EXIT
@@ -43,5 +45,10 @@ https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/refs/heads/master/W
 # Di chuyển file tmp vào thư mục đích
 mv "$BLOCK_TMP" "$BLOCK_OUT"
 mv "$ALLOW_TMP" "$ALLOW_OUT"
+cp "$BLOCK_OUT" "$PUBLIC_DIR/blocklists.txt"
+cp "$ALLOW_OUT" "$PUBLIC_DIR/allowlists.txt"
+cp "./$DIR/private_tlds.txt" "$PUBLIC_DIR/private_tlds.txt"
+cp "./$DIR/quad9_upstream.txt" "$PUBLIC_DIR/quad9_upstream.txt"
+cp "./$DIR/redirect_rules.txt" "$PUBLIC_DIR/redirect_rules.txt"
 
-echo "Done. Files saved to $BLOCK_OUT and $ALLOW_OUT"
+echo "Done. Files saved to $BLOCK_OUT, $ALLOW_OUT and $PUBLIC_DIR"

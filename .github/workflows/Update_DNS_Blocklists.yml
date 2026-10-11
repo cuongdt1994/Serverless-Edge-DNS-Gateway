@@ -25,5 +25,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto-update: blocklists and allowlists"
-          file_pattern: 'rules/*.txt'
+          file_pattern: 'rules/*.txt public/rules/*.txt'
           branch: ${{ github.ref }}

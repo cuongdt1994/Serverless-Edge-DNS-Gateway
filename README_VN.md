@@ -86,7 +86,7 @@ Các quy tắc chi tiết:
 ### Trình duyệt (Chrome / Edge / Firefox)
 1.  Vào **Cài đặt** > **Quyền riêng tư và bảo mật** > **Bảo mật**.
 2.  Bật **"Sử dụng DNS bảo mật"** và chọn **"Tùy chỉnh"**.
-3.  Dán URL của bạn: `https://your-project.pages.dev/dns-query`
+3.  Dán URL của bạn: `https://serverless-edge-dns-gateway.<account>.workers.dev/dns-query`
 
 ### Apple (iOS / macOS)
 1.  Mở URL dự án của bạn bằng trình duyệt **Safari**.

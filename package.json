@@ -1,0 +1,13 @@
+{
+  "name": "serverless-edge-dns-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "test": "node --test",
+    "deploy": "npx wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.149.0"
+  }
+}

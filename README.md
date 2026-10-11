@@ -1,7 +1,7 @@
 # 🛡️ Serverless Edge DNS Gateway
 [English](README.md) | [Tiếng Việt](README_VN.md)
 
-A secure, high-performance DNS-over-HTTPS (DoH) proxy running on Cloudflare's global Edge via Pages Functions. Optimized for speed, geographic accuracy (ECS), and professional adblocking.
+A secure, high-performance DNS-over-HTTPS (DoH) proxy running as a standalone Cloudflare Worker with Workers Static Assets. Optimized for speed, geographic accuracy (ECS), and professional adblocking.
 
 <p align="center">
   <img src="https://img.bibica.net/0Biaw3bp.webp" alt="ECS">
@@ -33,16 +33,21 @@ A secure, high-performance DNS-over-HTTPS (DoH) proxy running on Cloudflare's gl
 
 ## 🚀 Deployment
 
-### 1. Fork & Setup Actions
-1. [Fork this project](../../fork) to your GitHub account.
-2. Go to the **Actions** tab in your forked repository and click **I understand my workflows, go ahead and enable them**.
-3. Manually select and **Enable** the following workflows: `Update DNS Blocklists` and `Delete old workflow runs`.
+This repository is deployed as a standalone Worker; it no longer uses the Pages Functions runtime.
 
-### 2. Deploy to Cloudflare Pages
-1. Go to [Workers & Pages > Create application > Connect to Git](https://dash.cloudflare.com/?to=/:account/pages/new/provider/github).
-2. Connect your GitHub and select the forked repository.
-3. **Build Settings**: Leave everything as **default** (no changes needed).
-4. Click **Save and Deploy**.
+```bash
+npm install
+npx wrangler login
+npx wrangler deploy
+```
+
+To attach the custom domain during deployment (the zone and DNS record must already be available in the Cloudflare account):
+
+```bash
+npx wrangler deploy --domains dns.nexushomes.uk
+```
+
+The Worker name is fixed as `serverless-edge-dns-gateway`. Static files are deployed from `public/`, including `public/index.html` and `public/rules/`.
 
 ---
 
@@ -76,7 +81,7 @@ The parameters below are pre-configured with optimal defaults.
 
 ## 🛠 Rule Management (`rules/`)
 
-Rules are located in the `rules/` folder. When you modify and commit these files on GitHub, Cloudflare Pages will automatically sync and apply the new configuration.
+Rules are maintained in `rules/` and mirrored to `public/rules/` by `update_lists.sh`. The Worker deployment reads the public copy through the Static Assets binding. The update workflow refreshes both copies, so the next Worker deployment includes the same data.
 
 Detailed rules:
 
@@ -96,7 +101,7 @@ Detailed rules:
 ### Browsers (Chrome / Edge / Firefox)
 1.  Go to **Settings** > **Privacy and Security** > **Security**.
 2.  Enable **"Use secure DNS"** and select **"Custom"**.
-3.  Paste your endpoint: `https://your-project.pages.dev/dns-query`
+3.  Paste your endpoint: `https://serverless-edge-dns-gateway.<account>.workers.dev/dns-query`
 
 ### Apple (iOS / macOS)
 1.  Open your project URL in **Safari**.
@@ -115,5 +120,28 @@ Detailed rules:
 | `/dns-query` | The DoH resolver endpoint. |
 | `/debug` | Returns a JSON summary of config, stats, and rule counts. |
 | `/apple` | Generates a native Apple `.mobileconfig` profile for iOS/macOS. |
+
+## 🧪 Local tests
+
+```bash
+npm test
+npx wrangler dev --local
+```
+
+The test suite covers RFC 8484 GET and POST requests, binary responses, transaction IDs, static assets, and the 400/405/413/415 validation paths.
+
+## 📡 MikroTik RouterOS
+
+On RouterOS versions that support DoH, configure the endpoint as follows and use a trusted public certificate on the custom domain:
+
+```routeros
+/ip dns set use-doh-server=https://dns.nexushomes.uk/dns-query verify-doh-cert=yes allow-remote-requests=yes
+```
+
+If the custom domain is not yet resolving, use the Worker URL temporarily:
+
+```routeros
+/ip dns set use-doh-server=https://serverless-edge-dns-gateway.<account>.workers.dev/dns-query verify-doh-cert=yes allow-remote-requests=yes
+```
 
 ---

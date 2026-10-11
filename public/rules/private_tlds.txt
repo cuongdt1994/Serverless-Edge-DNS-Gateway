@@ -1,0 +1,2 @@
+# Local Domain 
+# https://raw.githubusercontent.com/Loyalsoldier/domain-list-custom/release/private.txt
