@@ -1,6 +1,9 @@
 // ==================== CONFIG ====================
-const UPSTREAM_PRIMARY = 'https://bu0eg1tdzu.cloudflare-gateway.com/dns-query';
-const UPSTREAM_FALLBACK = 'https://rhpcv957tj.cloudflare-gateway.com/dns-query';
+// Use public RFC 8484 resolvers as the Worker upstreams.  The gateway endpoint
+// remains the public DoH service; these upstreams avoid an extra Cloudflare
+// Gateway hop and materially reduce handshake/response latency.
+const UPSTREAM_PRIMARY = 'https://cloudflare-dns.com/dns-query';
+const UPSTREAM_FALLBACK = 'https://dns.google/dns-query';
 const UPSTREAM_GEO_BYPASS = 'https://dns.quad9.net/dns-query'; // Re-resolve without ECS when geo-block returns loopback
 const UPSTREAM_TIMEOUT = 5000;
 const MAX_DNS_MESSAGE_SIZE = 65535;
@@ -800,8 +803,15 @@ async function resolveQuery(query, clientIP) {
 // Ensure blocklists are loaded (await on first load, background refresh after)
 async function ensureBlocklistsLoaded(url, env, context) {
   if (!blocklistsFetched) {
-    // First time: await to ensure lists are loaded
-    await refreshBlocklists(url, env);
+    // Do not delay the first DNS response while parsing large lists.  The
+    // first request is fail-open; rules are loaded in the Worker background
+    // and subsequent requests use the in-memory sets.
+    const pending = refreshBlocklists(url, env);
+    if (context?.waitUntil) {
+      context.waitUntil(pending);
+      return;
+    }
+    await pending;
   } else if (context) {
     // Already fetched: background refresh only
     context.waitUntil(refreshBlocklists(url, env));
