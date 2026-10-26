@@ -10519,6 +10519,7 @@ ads.compro.se
 ads.comunidades.net
 ads.connectedinteractive.com
 ads.consents-management.prod.aws.statista.com
+ads.contentabc.com
 ads.contents.fc2.com
 ads.context2.ai
 ads.contextweb.com
@@ -22713,6 +22714,7 @@ app.response.blackbaud.com
 app.response.cetera.com
 app.response.firstdata.com
 app.response.hanover.com
+app.response.hartford.edu
 app.response.hslda.org
 app.response.integratelecom.com
 app.response.intergraph.com
@@ -22860,6 +22862,7 @@ app.wsucougars.com
 app.wts2.one
 app.wumii.com
 app.wvusports.com
+app.xdrig.com
 app.xizi.com
 app.xtreamarena.com
 app.yalebulldogs.com
@@ -27345,7 +27348,6 @@ bct.beavercrafttools.com
 bct1.marketingstrategie.de
 bcthh.iliabeauty.com
 bctt.igaming-service.io
-bctuafpdwarbm.site
 bcv.mybluehost.me
 bcvc.mobi
 bcvxynjpdtrcc.space
@@ -36029,7 +36031,6 @@ cdn.yollamedia.com
 cdn.yottaa.com
 cdn.yourwebbars.com
 cdn.yxrcr.com
-cdn.zampdsp.com
 cdn.zebotv.online
 cdn.zx-adnet.com
 cdn.zxclan.com
@@ -43848,7 +43849,6 @@ cse.rakanto.com
 cse3.chausport.com
 csebt.bloomist.com
 csenajeurcvoc.space
-csengb.manfredijewels.com
 cseuqmjbawgksv.com
 csf.uzone.id
 csfijhywqxquh.space
@@ -45220,7 +45220,6 @@ d.aviyoggroup.in
 d.azran.id
 d.batmobi.net
 d.bclm.com
-d.beautybypeople.se
 d.beechwood.agency
 d.begripped.com
 d.beigedi.com
@@ -75084,6 +75083,7 @@ goosierappetit.com
 goossb.com
 gooziucqysxjz.space
 goozngqdsg.com
+gopeebw.p7pcjz29wf84h3ukz.cyou
 gopher.mina.ca
 gophersport.evergage.com
 gophilantech.evergage.com
@@ -75782,7 +75782,6 @@ grtyv.com
 grubblepuffwig.com
 grubbrr.com
 grubbytrain.com
-grubgranted.com
 grubhub.pxf.io
 gruenten.agrar-fachversand.com
 gruenten.wahl-agrar.at
@@ -108332,6 +108331,7 @@ looiewokselding.cfd
 look-ahead.nurturemarketing.com
 look-at.keyameleon.app
 look.desafio.agentise.ia.br
+look.flowln.com
 look.kfiopkln.com
 look.ufinkln.com
 lookandfind.me
@@ -114241,7 +114241,6 @@ measure.vndirect.com.vn
 measure.voceeuropeu.com.br
 measure.voceportugues.com.br
 measure.voguecollege.com
-measure.voyagebrand.com.br
 measure.wallmur.com
 measure.wearebazoo.com
 measure.zency.dk
@@ -122005,7 +122004,6 @@ ms1.morganstanley.com
 ms4.applovin.com
 ms4.applvn.com
 msacsjzzitwgt.space
-msaczvwcjetyq.online
 msads.net
 msadsense.com
 msadsscale.azureedge.net
@@ -132904,7 +132902,6 @@ orillontorero.cyou
 orinet.net.mydays.de
 oringmedia.com
 orion.bendingspoons.com
-oriondigital.ru
 orionember.com
 oriori.com
 oritooep.win
@@ -137270,7 +137267,6 @@ pings.vidpulse.com
 pingsurvey.com
 pingtas.qq.com
 pinion.gg
-pink-high.pro
 pink.godli.com
 pink99.com
 pinkedanoxic.com
@@ -139268,6 +139264,7 @@ post.update.ap.lijit.com
 post.update.fbsbx.com
 post.update.indexww.com
 post.update.moatads.com
+post.update.spotxchange.com
 post.update.wo.gumgum.com
 post.xapads.com
 postadverts.com
@@ -142189,7 +142186,6 @@ pvd.to
 pvdbkr.com
 pvdnugjwyrkad.website
 pvdpix.com
-pvdynatracegw01.cosmote.gr
 pveja.heydude.de
 pveldvvjrvgru.site
 pveomaidxy.com
@@ -146683,6 +146679,7 @@ rancher.showheroes.com
 rancherschips.com
 ranchospsw.com
 ranchsatin.com
+rancidframingyet.com
 rancidmorsel.com
 rand.propspotter.com.au
 randiesterekjolted.cyou
@@ -153156,6 +153153,7 @@ s.update.indexww.com
 s.update.moatads.com
 s.update.postimp-ofw.fyber.com
 s.update.rubiconproject.com
+s.update.spotxchange.com
 s.update.wo.gumgum.com
 s.upzone.se
 s.usea01.idio.episerver.net
@@ -164068,7 +164066,6 @@ sgtm.moneymatix.com
 sgtm.monobunt.shop
 sgtm.monorstore.com
 sgtm.monoselection.com
-sgtm.monteiroeleiteadvogados.com.br
 sgtm.moo.com
 sgtm.moonboy.store
 sgtm.moonlight-concert.de
@@ -175066,7 +175063,6 @@ sqbcgfrjznaao.space
 sqbcn.catholiccoffee.com
 sqbekhpudmmbi.website
 sqbfnliy.admittedly.co
-sqblmvqgrp.com
 sqbzvlttwmodm.space
 sqcmgr.nils.ru
 sqcrb.dlouise.co.uk
@@ -179582,7 +179578,6 @@ sslmetrics.vivint.com
 sslomni.canadiantire.ca
 sslp.vendexcompany.com
 sslph.com
-sslproxy.gateway3advisorgroup-uat.app.ariba-privatwww.thrive-matomo.wdprapps-qaalsengineeringv.hicloudcam.com
 ssls.tulibrodigitalpdf.com
 ssls.zarocafe.com.br
 sslsa.scrippslifestylestudios.com
@@ -186457,7 +186452,6 @@ stape.byebyefraldinha.com.br
 stape.bymanubenditas.com
 stape.byvc.com.br
 stape.ca
-stape.cacseguranca.com.br
 stape.cacttus.com.br
 stape.cactusgaming.net
 stape.cadastrocasafolha.folha.com.br
@@ -188817,7 +188811,6 @@ stape.topviagem.com
 stape.toquefinno.com.br
 stape.torkstoree.com.br
 stape.torobravofitness360.com.br
-stape.torresminassnack.com.br
 stape.torresminhocaseiro.com.br
 stape.toskaspa.com
 stape.totalcomunicacaovisual.com.br
@@ -194613,7 +194606,6 @@ sync.commander1.com
 sync.connectad.io
 sync.console.adtarget.com.tr
 sync.crwdcntrl.net
-sync.cxrt.life
 sync.d2-apps.net
 sync.e-volution.ai
 sync.eilishbrands.nl
@@ -194777,6 +194769,7 @@ sys.zhangyue.com
 sys7.msg.xunlei.com
 sysbinder.xyz
 syslink.stridekidz.com
+sysmeasuring.net
 sysmon.kakaku.com
 sysomos.com
 sysoutvariola.com
@@ -198159,6 +198152,7 @@ tdsworkout.com
 tdt.dansktandforsikring.dk
 tdtexdceiujwi.site
 tdtfga.healingpinesrecovery.com
+tdum.alibaba.com
 tdusj.sportsetrvc.com
 tduzo.novalights.com.au
 tdvgmrzzkeuac.online
@@ -210470,7 +210464,6 @@ ultund.misterspex.nl
 uluhitailge.cfd
 uluhonolulu.evergage.com
 ulvqhajbndnty.website
-ulwfzxqtmzsfm.space
 ulwvsbezpsgff.site
 ulwzinqlh0.com
 ulx1cpf68.com
@@ -212046,6 +212039,7 @@ uslog.ezvizlife.com
 uslqdimcuxehp.store
 usls-uaa.locknewslab.com
 uslvcdvvgarjy.online
+usmajesticrake.com
 usmattress.pxf.io
 usmetric.rediff.com
 usmilitarylawyer.com
@@ -228412,7 +228406,6 @@ zbvdg.okcciviccenter.com
 zbw.mybluehost.me
 zbweattfkwerz.space
 zbxctp.automarket.pl
-zbxevfog6nwuxzvum49i.z3qc1641nrvq4vf.cyou
 zbyfef74e.com
 zbyziyxwiggsj.site
 zbz.m.qxs.la
@@ -230210,7 +230203,6 @@ zzdvsgnxamcmq.website
 zzfikyawmqtmw.website
 zzfmo.getyourwaggleon.com
 zzfsli.tom-tailor.ru
-zzfxfz.com
 zzghp.velotricbike.com
 zzhengre.com
 zzhizbzowrzlvy.com
