@@ -22,6 +22,8 @@ click.mz.simba.taobao.com
 click.tz.simba.taobao.com
 preview.page.link
 cdn.perfops.net
+ip-api.com
+ipwho.is
 my-win.avast.com
 ping.avast.com
 s-nuistatic.avcdn.net
